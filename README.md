@@ -1,49 +1,128 @@
-# Bearing IQ — AI Bearing Manufacturing Intelligence Platform
+<div align="center">
 
-An executive command center and five AI modules for a bearing manufacturer, built for Micro Turner Group.
+# 🔩 Bearing IQ
 
-| Module | What it does |
-|---|---|
-| **Executive Dashboard** | One-screen KPIs: first-pass yield, plant health, downtime cost avoided, quote pipeline, defect mix, stock vs demand |
-| **Visual Inspection** | Upload a bearing image → defect type, severity, location, disposition |
-| **Quotation** | AI-assisted pricing with customer history and upsell hints |
-| **Failure Analysis** | Failure-mode diagnosis and fleet-wide pattern statistics |
-| **Predictive Maintenance** | Machine health, failure probability, cost of prevention vs breakdown |
-| **Sourcing Intelligence** | Demand forecast, supplier scorecards, procurement recommendations |
+### AI-powered intelligence platform for bearing manufacturing
 
-**Stack:** FastAPI (Python) · Next.js 16 / React 19 · Tailwind CSS 4 · dependency-free SVG charts
+Visual inspection · Quotation · Failure analysis · Predictive maintenance · Sourcing intelligence — unified in one executive command center.
 
-> The current AI engines are simulation layers with realistic data contracts, so the UI and API are production-shaped and ready to plug in real models. The frontend falls back to sample data automatically if the API is offline.
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![Tailwind](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
+
+*Built for Micro Turner Group by [Swagata Banerjee](https://github.com/gitswagata1)*
+
+</div>
+
+---
+
+## Why this exists
+
+A bearing plant makes decisions in five disconnected places: the inspection line, the sales desk, the customer-complaint file, the shop floor and the purchase office. Bearing IQ puts an AI assistant in each of them and rolls the results into a single screen a plant head can read in 30 seconds.
+
+## What's inside
+
+| Module | Question it answers | Key output |
+|---|---|---|
+| 📊 **Executive Command Center** | *How is the plant doing right now?* | First-pass yield, plant health, downtime cost avoided, quote pipeline, defect mix, stock vs demand |
+| 🔍 **Visual Inspection** | *Is this bearing shippable?* | Pass/defect, defect type, severity grade, location, disposition |
+| 💰 **Quotation Assistant** | *What should we quote, and to whom?* | Price with GST, lead time, customer history, upsell hint |
+| 🔧 **Failure Analysis** | *Why did this bearing fail in the field?* | Root-cause ranking, corrective actions, fleet-wide failure patterns |
+| ⚙️ **Predictive Maintenance** | *Which machine fails next, and what does it cost?* | Health score, failure probability, hours-to-failure, prevention vs breakdown cost |
+| 📦 **Sourcing Intelligence** | *What should we buy this quarter?* | Demand forecast, stock cover, supplier scorecards, buy-now list |
+
+## Architecture
+
+```mermaid
+flowchart LR
+    UI["Next.js 16 + React 19<br/>Tailwind 4 · SVG charts"] -- REST / JSON --> API["FastAPI"]
+    API --> D["/api/dashboard<br/>roll-up of all modules"]
+    D --> I["/api/inspect"]
+    D --> M["/api/maintenance"]
+    D --> S["/api/sourcing"]
+    D --> Q["/api/quote"]
+    API --> F["/api/failure"]
+    UI -. API offline .-> DEMO["Built-in sample data"]
+```
+
+- **Single roll-up endpoint** — `GET /api/dashboard/overview` serves the whole command center in one round trip; the UI refreshes every 30 s.
+- **Offline-safe frontend** — if the API is unreachable, the UI falls back to sample data and shows a clear "Sample data" indicator, so demos never break.
+- **Zero chart dependencies** — donut, bar and stock charts are plain SVG: tiny bundle, no supply-chain surface.
+- **Typed contracts** — every endpoint is a Pydantic model, browsable at `/docs`.
 
 ## Quick start
 
+**Prerequisites:** Python 3.11+ and Node.js 20+
+
 ```bash
-# Backend  (http://localhost:8000/docs)
+# 1 · Backend  → http://localhost:8000/docs
 cd backend
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env
 uvicorn main:app --reload
 
-# Frontend (http://localhost:3000)
+# 2 · Frontend → http://localhost:3000
 cd frontend
 npm install
 npm run dev
 ```
 
-## Key endpoints
+Open http://localhost:3000 — the status chip in the top-right shows **Live** when the API is connected.
 
-- `GET /api/dashboard/overview` — aggregated KPIs for the command center (auto-refreshes every 30 s)
-- `POST /api/inspect` · `GET /api/inspect/stats`
-- `POST /api/quote` · `GET /api/quote/history`
-- `POST /api/failure/analyze` · `GET /api/failure/patterns`
-- `GET /api/maintenance/machines` · `/alerts`
-- `GET /api/sourcing/forecast` · `/suppliers` · `/recommendation`
+## API reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/dashboard/overview` | Aggregated KPIs and chart data for the command center |
+| POST | `/api/inspect` | Upload a bearing image, get an inspection verdict |
+| GET | `/api/inspect/stats` | Inspection totals, defect rate, defect-type mix |
+| POST | `/api/quote` | Generate an AI-assisted quotation |
+| GET | `/api/quote/history` | Recent quotes and statuses |
+| POST | `/api/failure/analyze` | Diagnose a field failure |
+| GET | `/api/failure/patterns` | Failure-mode statistics |
+| GET | `/api/maintenance/machines` | Health of every machine |
+| GET | `/api/maintenance/alerts` | Active predictive alerts |
+| GET | `/api/sourcing/forecast` | Demand forecast and stock cover |
+| GET | `/api/sourcing/suppliers` | Supplier scorecards |
+| GET | `/api/sourcing/recommendation` | Quarterly procurement recommendation |
 
 ## Configuration
 
-`backend/.env`: `CORS_ORIGINS` (comma-separated allowed origins), `ANTHROPIC_API_KEY`.
-`frontend/.env.local`: `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`).
+| File | Variable | Purpose |
+|---|---|---|
+| `backend/.env` | `CORS_ORIGINS` | Comma-separated origins allowed to call the API (default `http://localhost:3000`) |
+| `backend/.env` | `ANTHROPIC_API_KEY` | Reserved for LLM-backed modules |
+| `frontend/.env.local` | `NEXT_PUBLIC_API_URL` | API base URL (default `http://localhost:8000`) |
 
-## Roadmap
+## Project structure
 
-Real vision model for inspection · persistent database · authentication & roles · ERP/MES integrations · Docker deployment.
+```
+bearing-iq/
+├── backend/
+│   ├── main.py              # app, CORS, timing middleware, routers
+│   └── routers/             # dashboard · inspection · quotation · failure · maintenance · sourcing
+└── frontend/
+    └── src/
+        ├── app/             # command center + one page per module
+        ├── components/      # Sidebar, StatCard, StatusBadge, Charts (SVG)
+        └── lib/             # API client, demo data
+```
+
+## Current status & roadmap
+
+> ⚠️ **Prototype.** The inspection, maintenance and sourcing engines currently generate realistic *simulated* data behind production-shaped APIs. Numbers on screen are not live plant data.
+
+- [x] Executive command center with live roll-up API
+- [x] Five module UIs with offline sample-data fallback
+- [ ] Vision model for real defect detection
+- [ ] Persistent database and historical trends
+- [ ] Authentication and role-based access
+- [ ] ERP / MES / sensor integrations
+- [ ] Docker + CI/CD deployment
+
+## Author
+
+**Swagata Banerjee** — Forward Deployed Engineering, Micro Turners · [@gitswagata1](https://github.com/gitswagata1)
