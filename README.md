@@ -16,13 +16,24 @@ Visual inspection · Quotation · Failure analysis · Predictive maintenance · 
 
 </div>
 
+<p align="center">
+  <a href="#-why-this-exists">Why</a> ·
+  <a href="#-whats-inside">Modules</a> ·
+  <a href="#-architecture">Architecture</a> ·
+  <a href="#-quick-start">Quick start</a> ·
+  <a href="#-demo-walkthrough">Demo</a> ·
+  <a href="#-api-reference">API</a> ·
+  <a href="#-troubleshooting">Troubleshooting</a> ·
+  <a href="#-roadmap">Roadmap</a>
+</p>
+
 ---
 
-## Why this exists
+## 🎯 Why this exists
 
 A bearing plant makes decisions in five disconnected places: the inspection line, the sales desk, the customer-complaint file, the shop floor and the purchase office. Bearing IQ puts an AI assistant in each of them and rolls the results into a single screen a plant head can read in 30 seconds.
 
-## What's inside
+## 🧩 What's inside
 
 | Module | Question it answers | Key output |
 |---|---|---|
@@ -33,7 +44,7 @@ A bearing plant makes decisions in five disconnected places: the inspection line
 | ⚙️ **Predictive Maintenance** | *Which machine fails next, and what does it cost?* | Health score, failure probability, hours-to-failure, prevention vs breakdown cost |
 | 📦 **Sourcing Intelligence** | *What should we buy this quarter?* | Demand forecast, stock cover, supplier scorecards, buy-now list |
 
-## Architecture
+## 🏗 Architecture
 
 ```mermaid
 flowchart LR
@@ -52,7 +63,7 @@ flowchart LR
 - **Zero chart dependencies** — donut, bar and stock charts are plain SVG: tiny bundle, no supply-chain surface.
 - **Typed contracts** — every endpoint is a Pydantic model, browsable at `/docs`.
 
-## Quick start
+## 🚀 Quick start
 
 **Prerequisites:** Python 3.11+ and Node.js 20+
 
@@ -72,7 +83,18 @@ npm run dev
 
 Open http://localhost:3000 — the status chip in the top-right shows **Live** when the API is connected.
 
-## API reference
+## 🎬 Demo walkthrough
+
+A 5-minute tour for stakeholders:
+
+1. **Command Center (`/`)** — read the four KPI cards, then the defect mix and machine-health bars. Hit **Refresh**: values change because the API is live.
+2. **Predictive Maintenance** — open the machine at risk; compare *cost of prevention* vs *cost of breakdown*.
+3. **Sourcing** — check which parts need reorder and the supplier scorecard.
+4. **Inspection** — upload any bearing photo to see a verdict, defect type and severity.
+5. **Quotation** — generate a quote and review the AI notes and upsell hint.
+6. **Kill the backend** — the UI keeps working on sample data and flags it with a yellow banner.
+
+## 📡 API reference
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -89,7 +111,7 @@ Open http://localhost:3000 — the status chip in the top-right shows **Live** w
 | GET | `/api/sourcing/suppliers` | Supplier scorecards |
 | GET | `/api/sourcing/recommendation` | Quarterly procurement recommendation |
 
-## Configuration
+## ⚙️ Configuration
 
 | File | Variable | Purpose |
 |---|---|---|
@@ -97,7 +119,7 @@ Open http://localhost:3000 — the status chip in the top-right shows **Live** w
 | `backend/.env` | `ANTHROPIC_API_KEY` | Reserved for LLM-backed modules |
 | `frontend/.env.local` | `NEXT_PUBLIC_API_URL` | API base URL (default `http://localhost:8000`) |
 
-## Project structure
+## 📁 Project structure
 
 ```
 bearing-iq/
@@ -111,7 +133,18 @@ bearing-iq/
         └── lib/             # API client, demo data
 ```
 
-## Current status & roadmap
+## 🩺 Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `localhost:3000` refuses to connect | The frontend isn't running — run `npm run dev` in `frontend/` |
+| Yellow "Demo Mode" banner | Backend isn't running or `NEXT_PUBLIC_API_URL` is wrong |
+| Browser console shows CORS errors | Add your frontend origin to `CORS_ORIGINS` in `backend/.env` and restart |
+| PowerShell blocks `activate` | `Set-ExecutionPolicy -Scope Process Bypass`, then activate again |
+| `pip install` fails on Pillow / NumPy | Use `pillow>=11` and `numpy>=2.1` for newer Python versions |
+| Port already in use | `uvicorn main:app --port 8001` and update `NEXT_PUBLIC_API_URL` |
+
+## 🗺 Roadmap
 
 > ⚠️ **Prototype.** The inspection, maintenance and sourcing engines currently generate realistic *simulated* data behind production-shaped APIs. Numbers on screen are not live plant data.
 
@@ -123,6 +156,10 @@ bearing-iq/
 - [ ] ERP / MES / sensor integrations
 - [ ] Docker + CI/CD deployment
 
-## Author
+## 🤝 Contributing
+
+Branch from `main`, keep changes focused, and open a pull request describing the module touched and how you tested it.
+
+## 👤 Author
 
 **Swagata Banerjee** — Forward Deployed Engineering, Micro Turners · [@gitswagata1](https://github.com/gitswagata1)
