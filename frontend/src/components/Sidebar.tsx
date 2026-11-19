@@ -10,6 +10,7 @@ const links = [
   { href: "/quotation", icon: "\u{1F4B0}", label: "Quotation" },
   { href: "/failure-analysis", icon: "\u{1F527}", label: "Failure Analysis" },
   { href: "/maintenance", icon: "⚙️", label: "Maintenance" },
+  { href: "/remaining-life", icon: "\u{1F4C9}", label: "Remaining Life" },
   { href: "/sourcing", icon: "\u{1F4E6}", label: "Sourcing" },
 ];
 
@@ -77,6 +78,7 @@ export default function Sidebar() {
         <div className="border-t border-slate-800 p-4">
           <p className="text-xs text-slate-600">Micro Turner Group</p>
           <p className="text-xs text-slate-600">Pilot: 6200 Series</p>
+          <p className="mt-2 text-[11px] font-semibold text-sky-400/80">Prototype · simulated data</p>
         </div>
       </aside>
     </>

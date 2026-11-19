@@ -14,6 +14,7 @@ const modules = [
   { href: "/quotation", label: "Quotation", desc: "AI-assisted pricing" },
   { href: "/failure-analysis", label: "Failure Analysis", desc: "Root-cause analysis" },
   { href: "/maintenance", label: "Maintenance", desc: "Predictive machine health" },
+  { href: "/remaining-life", label: "Remaining Life", desc: "RUL model + uncertainty" },
   { href: "/sourcing", label: "Sourcing", desc: "Demand & supplier intel" },
 ];
 
@@ -33,9 +34,9 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    load();
+    const first = setTimeout(load, 0);
     const t = setInterval(load, 30000);
-    return () => clearInterval(t);
+    return () => { clearTimeout(first); clearInterval(t); };
   }, [load]);
 
   const k = data.kpis;
@@ -55,7 +56,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-3 text-xs text-slate-500">
           <span className="flex items-center gap-1.5">
             <span className={`h-2 w-2 rounded-full ${demo ? "bg-yellow-500" : "bg-green-500 animate-pulse"}`} />
-            {demo ? "Sample data" : "Live"}{updated && ` · ${updated.toLocaleTimeString()}`}
+            {demo ? "Sample data" : "API connected · simulated values"}{updated && ` · ${updated.toLocaleTimeString()}`}
           </span>
           <button onClick={load} className="rounded-lg border border-slate-700 px-3 py-1.5 font-semibold text-slate-300 hover:border-purple-500 hover:text-white">
             Refresh
@@ -120,7 +121,7 @@ export default function Dashboard() {
       </div>
 
       <h2 className="mb-3 mt-8 text-lg font-bold text-slate-300">Modules</h2>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
         {modules.map((m) => (
           <Link key={m.href} href={m.href} className="rounded-xl border border-slate-700 bg-slate-900 p-4 transition-colors hover:border-purple-500">
             <p className="text-sm font-bold text-white">{m.label} →</p>
