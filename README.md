@@ -16,6 +16,17 @@ Visual inspection · Quotation · Failure analysis · Predictive maintenance · 
 
 </div>
 
+> **Problem:** plant teams find out a bearing or spindle is failing only when the machine stops.
+> **Solution:** turn a sensor trend into a health score, a failure probability and hours-to-failure *with an uncertainty range*, and put it next to quality, sales and sourcing views.
+>
+> **Key features:** ① Remaining-life model (exponential degradation fit + bootstrap P10/P50/P90) with a backtest · ② one-screen prediction story: sensor trend → health → P(failure) → hours left · ③ executive command center over six typed FastAPI modules
+>
+> **Tech stack:** FastAPI · Pydantic · NumPy · Next.js 16 · React 19 · Tailwind 4 · plain-SVG charts
+>
+> **Status: prototype.** All data is simulated or synthetic (labelled on screen). Not connected to plant sensors.
+>
+> **How this maps to battery-lifespan prediction:** health indicator → degradation curve → threshold crossing → remaining useful life. Swap RMS vibration for capacity/SoH and the 7.1 mm/s alarm for 80 % capacity, and the same pipeline predicts remaining cycles with an uncertainty band.
+
 <p align="center">
   <a href="#-why-this-exists">Why</a> ·
   <a href="#-whats-inside">Modules</a> ·
@@ -37,11 +48,12 @@ A bearing plant makes decisions in five disconnected places: the inspection line
 
 | Module | Question it answers | Key output |
 |---|---|---|
-| 📊 **Executive Command Center** | *How is the plant doing right now?* | First-pass yield, plant health, downtime cost avoided, quote pipeline, defect mix, stock vs demand |
+| 📊 **Executive Command Center** | *How is the plant doing right now?* | First-pass yield, plant health, remaining-life strip, downtime cost avoided, quote pipeline, defect mix, stock vs demand |
 | 🔍 **Visual Inspection** | *Is this bearing shippable?* | Pass/defect, defect type, severity grade, location, disposition |
 | 💰 **Quotation Assistant** | *What should we quote, and to whom?* | Price with GST, lead time, customer history, upsell hint |
 | 🔧 **Failure Analysis** | *Why did this bearing fail in the field?* | Root-cause ranking, corrective actions, fleet-wide failure patterns |
 | ⚙️ **Predictive Maintenance** | *Which machine fails next, and what does it cost?* | Health score, failure probability, hours-to-failure, prevention vs breakdown cost |
+| 📉 **Remaining Life** | *How many hours until this bearing crosses its alarm level, and how sure are we?* | Fitted degradation curve, P10/P50/P90 RUL, P(failure ≤ 72 h), backtest metrics |
 | 📦 **Sourcing Intelligence** | *What should we buy this quarter?* | Demand forecast, stock cover, supplier scorecards, buy-now list |
 
 ## 🏗 Architecture
@@ -63,6 +75,31 @@ flowchart LR
 - **Zero chart dependencies** — donut, bar and stock charts are plain SVG: tiny bundle, no supply-chain surface.
 - **Typed contracts** — every endpoint is a Pydantic model, browsable at `/docs`.
 
+## 📉 How the remaining-life model works
+
+Code: [`backend/routers/rul.py`](backend/routers/rul.py) · UI: `/remaining-life`
+
+| | |
+|---|---|
+| **Data** | Synthetic hourly RMS vibration (mm/s): exponential degradation + noise, fixed seeds. *Not plant data.* |
+| **Features** | Last 120 h of vibration, baseline (median of first 48 h), time since install |
+| **Model** | `v(t) = v0 + exp(a + b·t)`, least-squares fit on `log(v − v0)`; failure = crossing 7.1 mm/s (demo alarm level) |
+| **Outputs** | Health score (0–100), P(failure within 72 h), RUL point estimate and P10/P50/P90 |
+| **Uncertainty** | Residual bootstrap, 300 refits |
+| **Validation** | Backtest on 20 held-out synthetic run-to-failure histories, predicting at 60/75/90 % of life (60 predictions): **MAE 27.6 h** on a mean true RUL of 309 h; **62 %** of true RULs fall inside the P10–P90 band (the band is too narrow, because the bootstrap captures noise but not model error) |
+| **Limitations** | Single sensor; assumes monotonic exponential degradation; validated only on synthetic data from the same model family, so these numbers are optimistic |
+
+## 🔬 What is real vs simulated (honest scope)
+
+| Module | What the code does today |
+|---|---|
+| Remaining Life | **Real algorithm** (curve fit, bootstrap, backtest) on **synthetic** sensor data |
+| Predictive Maintenance | Values drawn at random from status-based ranges (normal / warning / critical) |
+| Visual Inspection | Accepts an image upload; verdict is **simulated** (no vision model yet) |
+| Failure Analysis | **Keyword rules** map the description to a failure mode and a curated root-cause table; confidence value is simulated |
+| Quotation | Rule-based pricing from a parts table; history is simulated |
+| Sourcing | Simulated demand forecast and supplier scores |
+
 ## 🚀 Quick start
 
 **Prerequisites:** Python 3.11+ and Node.js 20+
@@ -81,18 +118,25 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000 — the status chip in the top-right shows **Live** when the API is connected.
+Open http://localhost:3000 — the status chip in the top-right shows **API connected** when the backend is running.
 
 ## 🎬 Demo walkthrough
 
 A 5-minute tour for stakeholders:
 
-1. **Command Center (`/`)** — read the four KPI cards, then the defect mix and machine-health bars. Hit **Refresh**: values change because the API is live.
-2. **Predictive Maintenance** — open the machine at risk; compare *cost of prevention* vs *cost of breakdown*.
-3. **Sourcing** — check which parts need reorder and the supplier scorecard.
-4. **Inspection** — upload any bearing photo to see a verdict, defect type and severity.
-5. **Quotation** — generate a quote and review the AI notes and upsell hint.
-6. **Kill the backend** — the UI keeps working on sample data and flags it with a yellow banner.
+1. **Command Center (`/`)** — read the four KPI cards and the *Remaining Useful Life* strip (hours left + 80 % range per asset), then the defect mix and machine-health bars. Hit **Refresh**: values change because the API is live.
+2. **Remaining Life** — pick HT-01: sensor trend → health 21 → 27 % P(failure ≤ 72 h) → 76 h (80 % range 68–85 h). Scroll to *How the model works* and the backtest.
+3. **Predictive Maintenance** — open the machine at risk; compare *cost of prevention* vs *cost of breakdown*.
+4. **Sourcing** — check which parts need reorder and the supplier scorecard.
+5. **Inspection** — upload any bearing photo to see the inspection workflow (verdict is simulated; no vision model yet).
+6. **Quotation** — generate a quote and review the AI notes and upsell hint.
+7. **Kill the backend** — the UI keeps working on sample data and flags it with a yellow banner.
+
+## 📸 Screenshots
+
+| Command center | Remaining-life prediction | Model explanation |
+|---|---|---|
+| ![](docs/screenshots/01-command-center.png) | ![](docs/screenshots/02-maintenance-prediction.png) | ![](docs/screenshots/03-model-explanation.png) |
 
 ## 📡 API reference
 
@@ -110,6 +154,8 @@ A 5-minute tour for stakeholders:
 | GET | `/api/sourcing/forecast` | Demand forecast and stock cover |
 | GET | `/api/sourcing/suppliers` | Supplier scorecards |
 | GET | `/api/sourcing/recommendation` | Quarterly procurement recommendation |
+| GET | `/api/rul/assets` | Remaining-life prediction for each monitored asset (history, fit, P10/P50/P90) |
+| GET | `/api/rul/model-card` | Model description, features, backtest metrics, limitations |
 
 ## ⚙️ Configuration
 
@@ -138,7 +184,7 @@ bearing-iq/
 | Symptom | Fix |
 |---|---|
 | `localhost:3000` refuses to connect | The frontend isn't running — run `npm run dev` in `frontend/` |
-| Yellow "Demo Mode" banner | Backend isn't running or `NEXT_PUBLIC_API_URL` is wrong |
+| Yellow "Prototype · sample data — API offline" banner | Backend isn't running or `NEXT_PUBLIC_API_URL` is wrong |
 | Browser console shows CORS errors | Add your frontend origin to `CORS_ORIGINS` in `backend/.env` and restart |
 | PowerShell blocks `activate` | `Set-ExecutionPolicy -Scope Process Bypass`, then activate again |
 | `pip install` fails on Pillow / NumPy | Use `pillow>=11` and `numpy>=2.1` for newer Python versions |
@@ -150,6 +196,8 @@ bearing-iq/
 
 - [x] Executive command center with live roll-up API
 - [x] Five module UIs with offline sample-data fallback
+- [x] Remaining-life model with uncertainty and backtest (synthetic data)
+- [ ] Validate RUL model on a public run-to-failure bearing dataset
 - [ ] Vision model for real defect detection
 - [ ] Persistent database and historical trends
 - [ ] Authentication and role-based access

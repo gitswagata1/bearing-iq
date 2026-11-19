@@ -5,19 +5,18 @@ const PALETTE = ["#a78bfa", "#60a5fa", "#f87171", "#fbbf24", "#22d3ee", "#4ade80
 export function Donut({ data, centerLabel, centerValue }: { data: { label: string; value: number }[]; centerLabel: string; centerValue: string }) {
   const total = data.reduce((a, d) => a + d.value, 0) || 1;
   const r = 60, c = 2 * Math.PI * r;
-  let offset = 0;
+  const lens = data.map((d) => (d.value / total) * c);
+  const offsets = lens.map((_, i) => lens.slice(0, i).reduce((a, b) => a + b, 0));
   return (
     <div className="flex items-center gap-6">
       <svg viewBox="0 0 160 160" className="h-40 w-40 flex-shrink-0 -rotate-90" role="img" aria-label="Defect distribution">
         <circle cx="80" cy="80" r={r} fill="none" stroke="#1e293b" strokeWidth="18" />
         {data.map((d, i) => {
-          const len = (d.value / total) * c;
-          const el = (
+          const len = lens[i];
+          return (
             <circle key={d.label} cx="80" cy="80" r={r} fill="none" stroke={PALETTE[i % PALETTE.length]} strokeWidth="18"
-              strokeDasharray={`${len} ${c - len}`} strokeDashoffset={-offset} />
+              strokeDasharray={`${len} ${c - len}`} strokeDashoffset={-offsets[i]} />
           );
-          offset += len;
-          return el;
         })}
         <g className="rotate-90" style={{ transformOrigin: "80px 80px" }}>
           <text x="80" y="78" textAnchor="middle" className="fill-white text-xl font-black">{centerValue}</text>

@@ -6,7 +6,7 @@ import os
 import time
 
 from fastapi import Request
-from routers import inspection, quotation, failure, maintenance, sourcing, dashboard
+from routers import inspection, quotation, failure, maintenance, sourcing, dashboard, rul
 
 
 @asynccontextmanager
@@ -48,6 +48,7 @@ app.include_router(quotation.router)
 app.include_router(failure.router)
 app.include_router(maintenance.router)
 app.include_router(sourcing.router)
+app.include_router(rul.router)
 
 
 @app.get("/", tags=["Health"])
