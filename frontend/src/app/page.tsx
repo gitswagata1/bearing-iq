@@ -8,6 +8,10 @@ import DemoBanner from "@/components/DemoBanner";
 import { Donut, HBar, StockBars } from "@/components/Charts";
 import { apiGet } from "@/lib/api";
 import { demoOverview, type Overview } from "@/lib/demo-data";
+import rulDemo from "@/lib/rul-demo.json";
+
+type RulRow = { asset_id: string; name: string; health_score: number; failure_prob_within_horizon: number;
+  horizon_hours: number; rul_hours_p10: number; rul_hours_p50: number; rul_hours_p90: number };
 
 const modules = [
   { href: "/inspection", label: "Inspection", desc: "AI visual defect scan" },
@@ -26,8 +30,11 @@ export default function Dashboard() {
   const [demo, setDemo] = useState(true);
   const [data, setData] = useState<Overview>(demoOverview);
   const [updated, setUpdated] = useState<Date | null>(null);
+  const [rul, setRul] = useState<RulRow[]>(rulDemo.assets as RulRow[]);
 
   const load = useCallback(async () => {
+    const rr = await apiGet<RulRow[]>("/api/rul/assets");
+    if (!rr.demo && rr.data) setRul(rr.data);
     const r = await apiGet<Overview>("/api/dashboard/overview");
     if (!r.demo && r.data) { setData(r.data); setDemo(false); } else setDemo(true);
     setUpdated(new Date());
@@ -71,6 +78,37 @@ export default function Dashboard() {
         <StatCard icon="💼" value={inr(k.open_quote_value)} label="Open Quote Pipeline" color="blue" />
       </div>
 
+
+      <section className="mt-4 rounded-xl border border-purple-500/40 bg-slate-900 p-5">
+        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+          <div>
+            <h3 className="text-sm font-bold text-white">Remaining Useful Life <span className="ml-2 rounded bg-sky-500/15 px-2 py-0.5 text-[10px] font-semibold text-sky-300">model · synthetic sensor data</span></h3>
+            <p className="text-xs text-slate-500">Degradation-curve fit with bootstrap uncertainty: median hours left and 80% range</p>
+          </div>
+          <Link href="/remaining-life" className="text-xs font-semibold text-purple-400 hover:underline">Open model view →</Link>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[...rul].sort((a, b) => a.rul_hours_p50 - b.rul_hours_p50).map((a) => {
+            const c = a.health_score >= 70 ? "#4ade80" : a.health_score >= 40 ? "#fbbf24" : "#f87171";
+            const max = 800, lo = Math.min(a.rul_hours_p10, max), hi = Math.min(a.rul_hours_p90, max), mid = Math.min(a.rul_hours_p50, max);
+            return (
+              <Link key={a.asset_id} href="/remaining-life" className="rounded-lg bg-slate-800/60 p-3 transition-colors hover:bg-slate-800">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-200">{a.asset_id}</span>
+                  <span style={{ color: c }}>health {a.health_score}</span>
+                </div>
+                <p className="mt-1 text-2xl font-black text-white">{Math.round(a.rul_hours_p50)} h</p>
+                <p className="text-[11px] text-slate-500">80% range {Math.round(a.rul_hours_p10)}–{Math.round(a.rul_hours_p90)} h · P(fail ≤ {a.horizon_hours} h) {Math.round(a.failure_prob_within_horizon * 100)}%</p>
+                <div className="relative mt-2 h-1.5 rounded bg-slate-700">
+                  <div className="absolute h-1.5 rounded" style={{ left: `${(lo / max) * 100}%`, width: `${Math.max(1, ((hi - lo) / max) * 100)}%`, background: c, opacity: 0.45 }} />
+                  <div className="absolute -top-0.5 h-2.5 w-0.5 rounded" style={{ left: `${(mid / max) * 100}%`, background: c }} />
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <Panel title="Defect Mix" sub={`${k.defect_rate_pct}% defect rate`}>
           <Donut
@@ -79,7 +117,7 @@ export default function Dashboard() {
             centerLabel="defect rate"
           />
         </Panel>
-        <Panel title="Machine Health" sub="Predictive maintenance score">
+        <Panel title="Machine Health" sub="Simulated status score (model-based RUL is above)">
           <HBar rows={data.machines.map((m) => ({ label: m.name, value: m.health_score, color: healthColor(m.health_score), suffix: "%" }))} />
         </Panel>
         <Panel title="Stock vs Forecast Demand" sub={`${k.reorders_needed} part(s) need reorder`}>
@@ -92,7 +130,7 @@ export default function Dashboard() {
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <Panel title="Needs Attention" sub="AI-flagged machines & stock">
+        <Panel title="Needs Attention" sub="Flagged machines & stock (simulated)">
           <ul className="space-y-2">
             {risky.length === 0 && <li className="text-sm text-slate-500">All machines healthy.</li>}
             {risky.map((m) => (
