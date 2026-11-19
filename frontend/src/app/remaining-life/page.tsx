@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiGet } from "@/lib/api";
+import { apiGet, STATIC_DEMO } from "@/lib/api";
 import demo from "@/lib/rul-demo.json";
 
 type Point = { t: number; v: number };
@@ -39,7 +39,7 @@ export default function RemainingLifePage() {
       <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-sky-500/30 bg-sky-500/10 px-4 py-2 text-sm font-semibold text-sky-300">
         Prototype · synthetic sensor data
         <span className="font-normal text-sky-200/70">
-          — vibration histories are simulated; {live ? "predictions computed live by the FastAPI model" : "API offline, showing a saved snapshot of the model output"}.
+          — vibration histories are simulated; {live ? "predictions computed live by the FastAPI model" : STATIC_DEMO ? "hosted demo showing a saved snapshot of the FastAPI model output" : "API offline, showing a saved snapshot of the model output"}.
         </span>
       </div>
 

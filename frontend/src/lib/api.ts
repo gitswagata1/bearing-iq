@@ -1,6 +1,9 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+/** Hosted static demo (GitHub Pages): no backend, always use the bundled sample data. */
+export const STATIC_DEMO = process.env.NEXT_PUBLIC_STATIC_DEMO === "1";
 
 export async function apiGet<T = unknown>(path: string): Promise<{ data: T | null; demo: boolean }> {
+  if (STATIC_DEMO) return { data: null, demo: true };
   try {
     const res = await fetch(`${API_BASE}${path}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -12,6 +15,7 @@ export async function apiGet<T = unknown>(path: string): Promise<{ data: T | nul
 }
 
 export async function apiPost<T = unknown>(path: string, body: unknown): Promise<{ data: T | null; demo: boolean }> {
+  if (STATIC_DEMO) return { data: null, demo: true };
   try {
     const res = await fetch(`${API_BASE}${path}`, {
       method: "POST",
@@ -27,6 +31,7 @@ export async function apiPost<T = unknown>(path: string, body: unknown): Promise
 }
 
 export async function apiPostForm<T = unknown>(path: string, formData: FormData): Promise<{ data: T | null; demo: boolean }> {
+  if (STATIC_DEMO) return { data: null, demo: true };
   try {
     const res = await fetch(`${API_BASE}${path}`, {
       method: "POST",
