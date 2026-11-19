@@ -6,7 +6,7 @@ import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
 import DemoBanner from "@/components/DemoBanner";
 import { Donut, HBar, StockBars } from "@/components/Charts";
-import { apiGet } from "@/lib/api";
+import { apiGet, STATIC_DEMO } from "@/lib/api";
 import { demoOverview, type Overview } from "@/lib/demo-data";
 import rulDemo from "@/lib/rul-demo.json";
 
@@ -63,7 +63,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-3 text-xs text-slate-500">
           <span className="flex items-center gap-1.5">
             <span className={`h-2 w-2 rounded-full ${demo ? "bg-yellow-500" : "bg-green-500 animate-pulse"}`} />
-            {demo ? "Sample data" : "API connected · simulated values"}{updated && ` · ${updated.toLocaleTimeString()}`}
+            {demo ? (STATIC_DEMO ? "Hosted demo · sample data" : "Sample data") : "API connected · simulated values"}{updated && ` · ${updated.toLocaleTimeString()}`}
           </span>
           <button onClick={load} className="rounded-lg border border-slate-700 px-3 py-1.5 font-semibold text-slate-300 hover:border-purple-500 hover:text-white">
             Refresh

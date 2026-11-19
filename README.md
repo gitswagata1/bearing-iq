@@ -12,6 +12,10 @@ Visual inspection · Quotation · Failure analysis · Predictive maintenance · 
 ![Tailwind](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
 
+### ▶ [Live demo: gitswagata1.github.io/bearing-iq](https://gitswagata1.github.io/bearing-iq/)
+
+No install needed. Start at [**Remaining Life**](https://gitswagata1.github.io/bearing-iq/remaining-life/). The hosted demo uses bundled sample data; run locally for the live FastAPI model.
+
 *Built for Micro Turner Group by [Swagata Banerjee](https://github.com/gitswagata1)*
 
 </div>
@@ -99,6 +103,10 @@ Code: [`backend/routers/rul.py`](backend/routers/rul.py) · UI: `/remaining-life
 | Failure Analysis | **Keyword rules** map the description to a failure mode and a curated root-cause table; confidence value is simulated |
 | Quotation | Rule-based pricing from a parts table; history is simulated |
 | Sourcing | Simulated demand forecast and supplier scores |
+
+## 🌐 Hosted demo
+
+The live demo is a static export of the Next.js frontend (`scripts/build-pages.sh` → `docs/`), served by GitHub Pages from `main` `/docs`. It has no backend, so every page shows the built-in sample data and a *Hosted demo* banner. The Remaining Life page shows a saved snapshot of the FastAPI model's output.
 
 ## 🚀 Quick start
 
