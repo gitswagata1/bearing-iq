@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import StatusBadge from "@/components/StatusBadge";
 import DemoBanner from "@/components/DemoBanner";
 import { apiGet } from "@/lib/api";
@@ -50,7 +51,11 @@ export default function MaintenancePage() {
       <DemoBanner show={demo} />
 
       <h1 className="mb-1 text-2xl font-black text-white">Predictive Maintenance</h1>
-      <p className="mb-6 text-sm text-slate-400">Real-time machine health monitoring with AI failure prediction</p>
+      <p className="mb-2 text-sm text-slate-400">Machine health monitoring with failure-risk estimates</p>
+      <p className="mb-6 text-xs text-slate-500">
+        Prototype: values on this page are simulated within status-based ranges. The fitted degradation model with uncertainty is on{" "}
+        <Link href="/remaining-life" className="font-semibold text-purple-400 hover:underline">Remaining Life →</Link>
+      </p>
 
       {/* Alerts */}
       {alerts.length > 0 && (
