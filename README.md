@@ -48,7 +48,7 @@ A bearing plant makes decisions in five disconnected places: the inspection line
 
 | Module | Question it answers | Key output |
 |---|---|---|
-| 📊 **Executive Command Center** | *How is the plant doing right now?* | First-pass yield, plant health, downtime cost avoided, quote pipeline, defect mix, stock vs demand |
+| 📊 **Executive Command Center** | *How is the plant doing right now?* | First-pass yield, plant health, remaining-life strip, downtime cost avoided, quote pipeline, defect mix, stock vs demand |
 | 🔍 **Visual Inspection** | *Is this bearing shippable?* | Pass/defect, defect type, severity grade, location, disposition |
 | 💰 **Quotation Assistant** | *What should we quote, and to whom?* | Price with GST, lead time, customer history, upsell hint |
 | 🔧 **Failure Analysis** | *Why did this bearing fail in the field?* | Root-cause ranking, corrective actions, fleet-wide failure patterns |
@@ -124,7 +124,7 @@ Open http://localhost:3000 — the status chip in the top-right shows **API conn
 
 A 5-minute tour for stakeholders:
 
-1. **Command Center (`/`)** — read the four KPI cards, then the defect mix and machine-health bars. Hit **Refresh**: values change because the API is live.
+1. **Command Center (`/`)** — read the four KPI cards and the *Remaining Useful Life* strip (hours left + 80 % range per asset), then the defect mix and machine-health bars. Hit **Refresh**: values change because the API is live.
 2. **Remaining Life** — pick HT-01: sensor trend → health 21 → 27 % P(failure ≤ 72 h) → 76 h (80 % range 68–85 h). Scroll to *How the model works* and the backtest.
 3. **Predictive Maintenance** — open the machine at risk; compare *cost of prevention* vs *cost of breakdown*.
 4. **Sourcing** — check which parts need reorder and the supplier scorecard.
